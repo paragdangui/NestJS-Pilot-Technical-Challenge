@@ -15,7 +15,12 @@ export class ListService {
     },
   ];
   create(createListDto: CreateListDto) {
-    return createListDto;
+    const newList = {
+      id: this.list.length,
+      ...createListDto,
+    };
+    this.list.push(newList);
+    return newList;
   }
 
   findAll() {
@@ -23,14 +28,28 @@ export class ListService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} list`;
+    const foundList = this.list.find((item) => item.id === id);
+    if (foundList) {
+      return foundList;
+    }
+    return `List with id #${id} not found`;
   }
 
   update(id: number, updateListDto: UpdateListDto) {
-    return `This action updates a #${id} list`;
+    const index = this.list.findIndex((item) => item.id === id);
+    if (index === -1) {
+      return `List with id #${id} not found`;
+    }
+    this.list[index] = { ...this.list[index], ...updateListDto };
+    return this.list[index];
   }
 
   remove(id: number) {
-    return `This action removes a #${id} list`;
+    const index = this.list.findIndex((item) => item.id === id);
+    if (index === -1) {
+      return `List with id #${id} not found`;
+    }
+    const removedList = this.list.splice(index, 1);
+    return removedList[0];
   }
 }
