@@ -1,55 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateListDto } from './dto/create-list.dto';
 import { UpdateListDto } from './dto/update-list.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { List } from './entities/list.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ListService {
-  private list = [
-    {
-      id: 0,
-      name: 'tomato',
-    },
-    {
-      id: 1,
-      name: 'potato',
-    },
-  ];
-  create(createListDto: CreateListDto) {
-    const newList = {
-      id: this.list.length,
-      ...createListDto,
-    };
-    this.list.push(newList);
-    return newList;
-  }
+  constructor(
+    @InjectRepository(List)
+    private readonly listRepository: Repository<List>,
+  ) {}
 
   findAll() {
-    return this.list;
+    return this.listRepository.find();
   }
 
-  findOne(id: number) {
-    const foundList = this.list.find((item) => item.id === id);
-    if (foundList) {
-      return foundList;
+  async findOne(id: number) {
+    const list = await this.listRepository.findOne({
+      where: { id: +id },
+    });
+    if (!list) {
+      throw new NotFoundException(`List with id #${id} NOT FOUND`);
     }
-    return `List with id #${id} not found`;
+    return list;
   }
 
-  update(id: number, updateListDto: UpdateListDto) {
-    const index = this.list.findIndex((item) => item.id === id);
-    if (index === -1) {
-      return `List with id #${id} not found`;
-    }
-    this.list[index] = { ...this.list[index], ...updateListDto };
-    return this.list[index];
+  // TODO: respond with what is created
+  async create(createListDto: CreateListDto) {
+    const newList = this.listRepository.create(createListDto);
+    return await this.listRepository.save(newList);
   }
 
-  remove(id: number) {
-    const index = this.list.findIndex((item) => item.id === id);
-    if (index === -1) {
-      return `List with id #${id} not found`;
+  // TODO: respond with what is deleted
+  async update(id: number, updateListDto: UpdateListDto) {
+    const existingList = await this.findOne(id);
+    if (!existingList) {
+      throw new NotFoundException(`List with id #${id} not found`);
     }
-    const removedList = this.list.splice(index, 1);
-    return removedList[0];
+
+    Object.assign(existingList, updateListDto);
+    return await this.listRepository.save(existingList);
+  }
+
+  // TODO: add proper responses when deleting a item
+  async remove(id: number) {
+    const existingList = await this.findOne(id);
+    if (!existingList) {
+      throw new NotFoundException(`List with id #${id} not found`);
+    }
+
+    return await this.listRepository.remove(existingList);
   }
 }
