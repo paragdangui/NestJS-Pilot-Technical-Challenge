@@ -16,8 +16,8 @@ export class ListController {
   constructor(private readonly listService: ListService) {}
 
   @Post()
-  create(@Body() createListDto: CreateListDto) {
-    return this.listService.create(createListDto);
+  async create(@Body() createListDto: CreateListDto) {
+    return `New list created with the name '${await this.listService.create(createListDto)}'`;
   }
 
   @Get()

@@ -26,30 +26,27 @@ export class ListService {
     return list;
   }
 
-  // TODO: respond with what is created
   async create(createListDto: CreateListDto) {
     const newList = this.listRepository.create(createListDto);
-    return await this.listRepository.save(newList);
+    const test = await this.listRepository.save(newList);
+    return test.name;
   }
 
-  // TODO: respond with what is deleted
   async update(id: number, updateListDto: UpdateListDto) {
     const existingList = await this.findOne(id);
     if (!existingList) {
       throw new NotFoundException(`List with id #${id} not found`);
     }
-
     Object.assign(existingList, updateListDto);
     return await this.listRepository.save(existingList);
   }
 
-  // TODO: add proper responses when deleting a item
   async remove(id: number) {
     const existingList = await this.findOne(id);
     if (!existingList) {
       throw new NotFoundException(`List with id #${id} not found`);
     }
-
-    return await this.listRepository.remove(existingList);
+    const deletedList = await this.listRepository.remove(existingList);
+    return deletedList.name;
   }
 }
