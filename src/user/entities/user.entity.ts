@@ -23,7 +23,6 @@ export class User {
   @Column()
   email: string;
 
-  // TODO: the password should be in md5 format
   @Column()
   password: string;
 
