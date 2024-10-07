@@ -15,7 +15,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // TODO: create a new user only if the username doesn't exist
   @Post('register')
   async create(@Body() createUserDto: CreateUserDto) {
     const newUser = await this.userService.create(createUserDto);
