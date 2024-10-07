@@ -13,7 +13,9 @@ export class ListService {
   ) {}
 
   findAll() {
-    return this.listRepository.find();
+    return this.listRepository.find({
+      relations: ['user_id'],
+    });
   }
 
   async findOne(id: number) {

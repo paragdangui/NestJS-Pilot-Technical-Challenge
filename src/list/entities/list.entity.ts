@@ -1,3 +1,4 @@
+import { User } from 'src/user/entities/user.entity';
 import {
   Entity,
   Column,
@@ -13,9 +14,9 @@ export class List {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // @ManyToOne(() => User, (user) => user.lists) // Many lists can belong to one user
-  // @JoinColumn({ name: 'user_id' }) // Defines the FK column in the database
-  // user: User;
+  @ManyToOne(() => User, (user) => user.list)
+  @JoinColumn({ name: 'user_id' })
+  user_id: User;
 
   @Column()
   name: string;
