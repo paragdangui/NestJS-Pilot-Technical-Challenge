@@ -29,6 +29,9 @@ export class User {
   @Column({ type: 'boolean', default: UserStatus.INACTIVE })
   user_status: UserStatus;
 
+  @Column({ nullable: true })
+  token: string;
+
   // TODO: research how the refresh token needs to be sent
   @Column({ unique: true, nullable: true })
   refresh_token: string;
