@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -52,8 +54,6 @@ export class UserService {
 
     const generatedToken = crypto.randomBytes(10).toString('hex');
 
-    console.log('random string', generatedToken);
-
     // Hash the password before saving
     const saltOrRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltOrRounds);
@@ -65,7 +65,6 @@ export class UserService {
       password: hashedPassword,
     });
     console.log('localhost:3000/user/confirm-email?token=' + user.token);
-
     return this.userRepository.save(user);
   }
 
@@ -98,10 +97,12 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: { token: token }, // Use actual logic for finding the correct user
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user)
+      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
 
     // Update the user_status from 0 (inactive) to 1 (active)
     user.user_status = 1; // Change status to active
+    user.token = null; // Reset token
 
     return this.userRepository.save(user);
   }
