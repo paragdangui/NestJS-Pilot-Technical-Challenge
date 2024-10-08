@@ -45,4 +45,14 @@ export class AuthService {
       },
     };
   }
+
+  private blacklistedTokens: string[] = [];
+
+  async blacklistToken(token: string) {
+    this.blacklistedTokens.push(token); // Add token to the blacklist
+  }
+
+  isTokenBlacklisted(token: string): boolean {
+    return this.blacklistedTokens.includes(token);
+  }
 }
