@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -7,12 +6,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserStatus } from './enum/user-status.enum';
-import * as crypto from 'crypto';
 
 @Injectable()
 export class UserService {
@@ -36,36 +32,6 @@ export class UserService {
       throw new NotFoundException(`User with id #${id} not found`);
     }
     return user;
-  }
-
-  //  check all crud for users in the postman
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const { email, password } = createUserDto;
-
-    // Check if the email already exists in the database
-    const existingUser = await this.userRepository.findOne({
-      where: { email },
-    });
-
-    if (existingUser) {
-      // Throw an exception if the email is already taken
-      throw new ConflictException(`Email ${email} is already in use`);
-    }
-
-    const generatedToken = crypto.randomBytes(10).toString('hex');
-
-    // Hash the password before saving
-    const saltOrRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltOrRounds);
-
-    // Create and save the new user
-    const user = this.userRepository.create({
-      ...createUserDto,
-      token: generatedToken,
-      password: hashedPassword,
-    });
-    console.log('localhost:3000/user/confirm-email?token=' + user.token);
-    return this.userRepository.save(user);
   }
 
   // Update user details
