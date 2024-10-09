@@ -9,7 +9,15 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Authentication')
+@ApiBearerAuth()
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -18,11 +26,29 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @ApiOperation({ summary: 'User Login' })
+  @ApiResponse({
+    status: 201,
+    description: 'Login successful',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid Credentials',
+  })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
   @Post('logout')
+  @ApiOperation({ summary: 'User Logout' })
+  @ApiResponse({
+    status: 201,
+    description: 'Logged out successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'TokenExpiredError: jwt expired Invalid token',
+  })
   async logout(@Req() req, @Res() res) {
     const authHeader = req.headers.authorization;
     if (!authHeader) {

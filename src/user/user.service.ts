@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -9,6 +10,9 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserStatus } from './enum/user-status.enum';
+import { CreateUserDto } from './dto/create-user.dto';
+import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -32,6 +36,35 @@ export class UserService {
       throw new NotFoundException(`User with id #${id} not found`);
     }
     return user;
+  }
+
+  async register(createUserDto: CreateUserDto): Promise<User> {
+    const { email, password } = createUserDto;
+
+    // Check if the email already exists in the database
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (existingUser) {
+      // Throw an exception if the email is already taken
+      throw new ConflictException(`Email ${email} is already in use`);
+    }
+
+    const generatedToken = crypto.randomBytes(10).toString('hex');
+
+    // Hash the password before saving
+    const saltOrRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltOrRounds);
+
+    // Create and save the new user
+    const user = this.userRepository.create({
+      ...createUserDto,
+      token: generatedToken,
+      password: hashedPassword,
+    });
+    console.log('localhost:3000/user/confirm-email?token=' + user.token);
+    return this.userRepository.save(user);
   }
 
   // Update user details

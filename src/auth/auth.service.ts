@@ -1,16 +1,10 @@
-import {
-  ConflictException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,35 +13,6 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
   ) {}
-
-  async register(createUserDto: CreateUserDto): Promise<User> {
-    const { email, password } = createUserDto;
-
-    // Check if the email already exists in the database
-    const existingUser = await this.userRepository.findOne({
-      where: { email },
-    });
-
-    if (existingUser) {
-      // Throw an exception if the email is already taken
-      throw new ConflictException(`Email ${email} is already in use`);
-    }
-
-    const generatedToken = crypto.randomBytes(10).toString('hex');
-
-    // Hash the password before saving
-    const saltOrRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltOrRounds);
-
-    // Create and save the new user
-    const user = this.userRepository.create({
-      ...createUserDto,
-      token: generatedToken,
-      password: hashedPassword,
-    });
-    console.log('localhost:3000/user/confirm-email?token=' + user.token);
-    return this.userRepository.save(user);
-  }
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
