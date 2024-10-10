@@ -15,7 +15,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('List Management API')
-    .setDescription('API for managing user lists and items')
+    .setDescription("API for managing users and user's lists and list-items")
     .setVersion('1.0')
     .addBearerAuth() // Add JWT bearer token authentication
     .build();

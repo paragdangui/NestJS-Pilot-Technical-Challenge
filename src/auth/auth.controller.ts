@@ -5,6 +5,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -15,9 +16,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/jwt-auth.guard';
 
 @ApiTags('Authentication')
-@ApiBearerAuth()
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -40,6 +41,8 @@ export class AuthController {
   }
 
   @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'User Logout' })
   @ApiResponse({
     status: 201,

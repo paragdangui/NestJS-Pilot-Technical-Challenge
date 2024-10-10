@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ListService } from './list.service';
 import { CreateListDto } from './dto/create-list.dto';
@@ -17,8 +18,10 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/jwt-auth.guard';
 
 @ApiTags('Lists')
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 @Controller('list')
 export class ListController {
