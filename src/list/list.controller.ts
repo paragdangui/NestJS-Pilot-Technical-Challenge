@@ -18,7 +18,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
 @ApiTags('Lists')
 @UseGuards(JwtAuthGuard)

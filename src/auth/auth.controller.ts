@@ -8,6 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { Request, Response } from 'express';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -16,7 +17,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/jwt-auth.guard';
+import { CookieAuthGuard } from './guards/cookie.guard';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -36,12 +37,28 @@ export class AuthController {
     status: 401,
     description: 'Invalid Credentials',
   })
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+    return this.authService.login(loginDto, res);
+  }
+
+  @Post('refresh-token')
+  @UseGuards(CookieAuthGuard)
+  @ApiBearerAuth()
+  async refreshAccessToken(@Req() req: Request, @Res() res: Response) {
+    const refreshToken = req.cookies['refreshToken'];
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+
+    const newAccessToken =
+      await this.authService.refreshAccessToken(refreshToken);
+
+    return res.status(200).json({ accessToken: newAccessToken });
   }
 
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(CookieAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'User Logout' })
   @ApiResponse({
@@ -52,22 +69,22 @@ export class AuthController {
     status: 401,
     description: 'TokenExpiredError: jwt expired Invalid token',
   })
-  async logout(@Req() req, @Res() res) {
+  @Post('logout')
+  async logout(@Req() req: Request, @Res() res: Response) {
+    const refreshToken = req.cookies['refreshToken'];
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      throw new UnauthorizedException('Authorization header is missing');
+      throw new UnauthorizedException('Authorization header not found');
     }
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      throw new UnauthorizedException('Token is missing');
-    }
-    try {
-      const payload = this.jwtService.verify(token);
-      console.log('logged out user details', payload);
-      await this.authService.blacklistToken(token);
-      return res.status(200).json({ message: 'Logged out successfully' });
-    } catch (error) {
-      throw new UnauthorizedException(`${error} Invalid token`);
-    }
+    // const accessToken = authHeader.split(' ')[1];
+
+    const userId = 1;
+    // const userId = req.user.id; // Assuming req.user is set via JwtAuthGuard
+    return this.authService.logout(userId, res);
   }
 }

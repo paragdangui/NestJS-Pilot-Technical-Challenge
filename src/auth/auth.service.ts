@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Res,
+  Response,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -14,44 +19,106 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto, @Res() res) {
     const { email, password } = loginDto;
 
-    // Check if the user exists
+    // Validate user and password
     const user = await this.userRepository.findOne({ where: { email } });
-
-    if (!user) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const passwordMatches = await bcrypt.compare(password, user.password);
+    // Generate access and refresh tokens
+    const accessToken = this.jwtService.sign(
+      { email: user.email, sub: user.id },
+      { expiresIn: '15m' }, // Access token valid for  30 seconds
+    );
 
-    if (!passwordMatches) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    const refreshToken = this.jwtService.sign(
+      { email: user.email, sub: user.id },
+      { expiresIn: '7d' }, // Refresh token valid for 7 days
+    );
 
-    const payload = { email: user.email, sub: user.id };
-    const token = this.jwtService.sign(payload);
+    // Hash the refresh token and store it in the database
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    await this.userRepository.update(user.id, {
+      refresh_token: hashedRefreshToken,
+    });
 
-    return {
+    // Set the refresh token as an HTTP-only cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Enable in production for HTTPS
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Send the access token in the response
+    return res.status(200).json({
+      accessToken,
       message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        first_name: user.first_name,
-        last_name: user.last_name,
-      },
-    };
+    });
   }
 
-  private blacklistedTokens: string[] = [];
+  async refreshAccessToken(refreshToken: string): Promise<string> {
+    try {
+      // Verify the refresh token
+      const { sub: userId } = this.jwtService.verify(refreshToken);
 
-  async blacklistToken(token: string) {
-    this.blacklistedTokens.push(token); // Add token to the blacklist
+      // Find the user and check if the refresh token matches
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (!user || !user.refresh_token) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      // Compare the refresh token with the stored hashed refresh token
+      const refreshTokenMatches = await bcrypt.compare(
+        refreshToken,
+        user.refresh_token,
+      );
+      if (!refreshTokenMatches) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      // Issue a new access token
+      const newAccessToken = this.jwtService.sign(
+        { email: user.email, sub: user.id },
+        { expiresIn: '15m' }, // New access token valid for 15 minutes
+      );
+
+      return newAccessToken;
+    } catch (error) {
+      throw new UnauthorizedException(
+        'Invalid or expired refresh token' + error,
+      );
+    }
   }
 
-  isTokenBlacklisted(token: string): boolean {
-    return this.blacklistedTokens.includes(token);
+  async logout(userId: number, @Response() res) {
+    // Clear refresh token in the database
+    await this.userRepository.update(userId, { refresh_token: null });
+
+    // Clear the refresh token cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // nsure it's only secure in production
+      sameSite: 'strict',
+    });
+
+    return res.status(200).json({ message: 'Logged out successfully' });
+  }
+
+  async validateRefreshToken(token: string) {
+    try {
+      // Decode and verify the token using JwtService
+      const payload = this.jwtService.verify(token);
+      console.log('payload', payload);
+
+      return { userId: payload.sub, email: payload.email };
+    } catch (error) {
+      throw new UnauthorizedException(
+        'Invalid or expired refresh token:' + error,
+      );
+    }
   }
 }
