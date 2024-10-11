@@ -1,3 +1,4 @@
+import { ListItem } from 'src/list-item/entities/list-item.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Entity,
@@ -7,6 +8,7 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity()
@@ -26,4 +28,7 @@ export class List {
 
   @UpdateDateColumn({ type: 'timestamp', default: () => {} })
   updated_at: Date;
+
+  @OneToMany(() => ListItem, (listItem) => listItem.list, { cascade: true })
+  items: ListItem[];
 }

@@ -19,7 +19,7 @@ async function bootstrap() {
     .setTitle('List Management API')
     .setDescription("API for managing users and user's lists and list-items")
     .setVersion('1.0')
-    .addBearerAuth() // Add JWT bearer token authentication
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
