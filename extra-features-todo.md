@@ -1,5 +1,7 @@
 # Extra features:
 
+## add the ability to add multiple list items with a single with a single request.
+
 ## use some form of a SMTP server to validate emails
 
 ## rate limitations and lockout mechanism:

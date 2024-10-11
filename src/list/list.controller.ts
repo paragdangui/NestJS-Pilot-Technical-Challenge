@@ -8,10 +8,7 @@ import {
   Delete,
   ParseIntPipe,
   UseGuards,
-  Req,
-  Request,
 } from '@nestjs/common';
-// import { Request } from 'express';
 import { ListService } from './list.service';
 import { CreateListDto } from './dto/create-list.dto';
 import { UpdateListDto } from './dto/update-list.dto';
@@ -22,7 +19,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
-import { CookieAuthGuard } from 'src/auth/guards/cookie.guard';
 import { Token } from 'src/auth/decorator/auth.decorator';
 
 @ApiTags('Lists')
@@ -31,7 +27,6 @@ import { Token } from 'src/auth/decorator/auth.decorator';
 export class ListController {
   constructor(private readonly listService: ListService) {}
 
-  // TODO: there is a issue here when creating a new list the 'user_id' remains empty
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new list' })
   @ApiResponse({
@@ -40,8 +35,6 @@ export class ListController {
   })
   @Post()
   async create(@Body() CreateListDto: CreateListDto, @Token() token) {
-    console.log('token: ' + token.sub);
-
     return `New list created with the name '${await this.listService.create(CreateListDto, token.sub)}'`;
   }
 

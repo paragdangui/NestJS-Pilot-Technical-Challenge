@@ -13,7 +13,7 @@ import { CreateListItemDto } from './dto/create-list-item.dto';
 import { UpdateListItemDto } from './dto/update-list-item.dto';
 
 @ApiTags('List Items')
-@Controller('lists/:listId/item')
+@Controller('list-items/:listId')
 export class ListItemController {
   constructor(private readonly listItemService: ListItemService) {}
 

@@ -4,12 +4,15 @@ import { UpdateListDto } from './dto/update-list.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { List } from './entities/list.entity';
 import { Repository } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class ListService {
   constructor(
     @InjectRepository(List)
     private readonly listRepository: Repository<List>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   findAll() {
@@ -29,16 +32,18 @@ export class ListService {
   }
 
   async create(createListDto: CreateListDto, user_id: number) {
-    const currentUser = await this.listRepository.findOne({
-      where: { user_id },
+    const currentUser = await this.userRepository.findOne({
+      where: { id: user_id }, // Correct syntax for querying user
     });
-    const newList = this.listRepository.create({..createListDto});
-    const { name } = await this.listRepository.save(newList);
-    return name;
-
-    // const newList = this.listRepository.create(createListDto);
-    const newlyCreatedList = await this.listRepository.save(newList);
-    return newlyCreatedList;
+    if (!currentUser) {
+      throw new Error('User not found');
+    }
+    const newList = this.listRepository.create({
+      ...createListDto,
+      user_id: currentUser,
+    });
+    const savedList = await this.listRepository.save(newList);
+    return savedList.name;
   }
 
   async update(id: number, updateListDto: UpdateListDto) {
