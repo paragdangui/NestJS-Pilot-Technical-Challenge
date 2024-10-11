@@ -12,7 +12,6 @@ import { ListItemService } from './list-item.service';
 import { CreateListItemDto } from './dto/create-list-item.dto';
 import { UpdateListItemDto } from './dto/update-list-item.dto';
 
-//TODO: check the endpoints in swagger
 @ApiTags('List Items')
 @Controller('lists/:listId/item')
 export class ListItemController {
@@ -32,7 +31,7 @@ export class ListItemController {
     return this.listItemService.findOne(+listId, +itemId);
   }
 
-  @ApiOperation({ summary: 'Create a new list item' })
+  @ApiOperation({ summary: 'Add a New Item to your List' })
   @ApiResponse({
     status: 201,
     description: 'Creates and returns the new list item.',

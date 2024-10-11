@@ -26,7 +26,7 @@ export class List {
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', default: () => {} })
+  @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
 
   @OneToMany(() => ListItem, (listItem) => listItem.list, { cascade: true })

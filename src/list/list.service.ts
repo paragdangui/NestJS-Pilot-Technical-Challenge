@@ -28,10 +28,17 @@ export class ListService {
     return list;
   }
 
-  async create(createListDto: CreateListDto) {
-    const newList = this.listRepository.create(createListDto);
-    const test = await this.listRepository.save(newList);
-    return test.name;
+  async create(createListDto: CreateListDto, user_id: number) {
+    const currentUser = await this.listRepository.findOne({
+      where: { user_id },
+    });
+    const newList = this.listRepository.create({..createListDto});
+    const { name } = await this.listRepository.save(newList);
+    return name;
+
+    // const newList = this.listRepository.create(createListDto);
+    const newlyCreatedList = await this.listRepository.save(newList);
+    return newlyCreatedList;
   }
 
   async update(id: number, updateListDto: UpdateListDto) {

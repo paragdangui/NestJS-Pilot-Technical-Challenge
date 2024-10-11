@@ -112,7 +112,6 @@ export class AuthService {
     try {
       // Decode and verify the token using JwtService
       const payload = this.jwtService.verify(token);
-      console.log('payload', payload);
 
       return { userId: payload.sub, email: payload.email };
     } catch (error) {

@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
-import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateListDto {
   @ApiProperty({
@@ -11,9 +10,7 @@ export class CreateListDto {
   @IsNotEmpty()
   name: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  created_at: Date;
-
-  @UpdateDateColumn({ type: 'timestamp' })
-  updated_at: Date;
+  @IsNumber()
+  @IsNotEmpty()
+  user_id: number;
 }

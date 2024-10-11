@@ -43,7 +43,6 @@ node_modules/
 jspm_packages/
 TODO.md
 task.md
-extra-features-todo.md
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
