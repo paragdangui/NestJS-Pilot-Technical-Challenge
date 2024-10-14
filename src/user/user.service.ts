@@ -38,6 +38,14 @@ export class UserService {
     return user;
   }
 
+  generatedVerificationToken = () => {
+    const verificationToken = crypto.randomBytes(10).toString('hex');
+    // Create and save the new user
+    console.log('localhost:3000/user/confirm-email?token=' + verificationToken);
+
+    return verificationToken;
+  };
+
   async register(createUserDto: CreateUserDto): Promise<User> {
     const { email, password } = createUserDto;
 
@@ -46,27 +54,38 @@ export class UserService {
       where: { email },
     });
 
-    if (existingUser) {
-      // Throw an exception if the email is already taken
+    if (existingUser)
       throw new ConflictException(`Email ${email} is already in use`);
-    }
 
-    const generatedToken = crypto.randomBytes(10).toString('hex');
+    const verificationToken = this.generatedVerificationToken();
 
     // Hash the password before saving
-    const saltOrRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltOrRounds);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create and save the new user
     const user = this.userRepository.create({
       ...createUserDto,
-      token: generatedToken,
+      verification_token: verificationToken,
       password: hashedPassword,
     });
-    console.log('localhost:3000/user/confirm-email?token=' + user.token);
     return this.userRepository.save(user);
   }
 
+  // Function to confirm the email by updating user_status
+  async confirmEmail(token: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { verification_token: token },
+    });
+    if (!user)
+      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+
+    if (user.user_status === UserStatus.ACTIVE) {
+      throw new HttpException('User already verified', HttpStatus.BAD_REQUEST);
+    }
+    user.user_status = UserStatus.ACTIVE; // Change status to active
+    user.verification_token = null; // Reset token
+
+    return this.userRepository.save(user);
+  }
   // Update user details
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id); // find the user first
@@ -89,21 +108,6 @@ export class UserService {
     user.refresh_token_expiry = expiryDate;
 
     await this.userRepository.save(user); // save updated token info
-  }
-
-  // Function to confirm the email by updating user_status
-  async confirmEmail(token: string): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { token: token }, // Use actual logic for finding the correct user
-    });
-    if (!user)
-      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
-
-    // Update the user_status from 0 (inactive) to 1 (active)
-    user.user_status = 1; // Change status to active
-    user.token = null; // Reset token
-
-    return this.userRepository.save(user);
   }
 
   // Remove a user by id

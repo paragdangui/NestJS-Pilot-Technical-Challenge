@@ -1,5 +1,6 @@
 import {
   Injectable,
+  NotFoundException,
   Res,
   Response,
   UnauthorizedException,
@@ -7,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
+import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
@@ -38,12 +40,12 @@ export class AuthService {
     // Generate access and refresh tokens
     const accessToken = this.jwtService.sign(
       { email: user.email, sub: user.id },
-      { expiresIn: '15m' }, // Access token valid for  30 seconds
+      { expiresIn: '15m' },
     );
 
     const refreshToken = this.jwtService.sign(
       { email: user.email, sub: user.id },
-      { expiresIn: '7d' }, // Refresh token valid for 7 days
+      { expiresIn: '7d' },
     );
 
     // Hash the refresh token and store it in the database
@@ -65,6 +67,21 @@ export class AuthService {
       accessToken,
       message: 'Login successful',
     });
+  }
+
+  async regenerateVerificationToken(email: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.verification_token = crypto.randomBytes(10).toString('hex');
+    console.log(
+      'localhost:3000/user/confirm-email?token=' + user.verification_token,
+    );
+    await this.userRepository.save(user);
+    return user;
   }
 
   async refreshAccessToken(refreshToken: string): Promise<string> {

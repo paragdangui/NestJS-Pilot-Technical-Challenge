@@ -17,6 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CookieAuthGuard } from './guards/cookie.guard';
+import { RegenerateVerificationTokenDto } from './dto/regenerateVerificationToken.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -53,6 +54,24 @@ export class AuthController {
     return res.status(200).json({ accessToken: newAccessToken });
   }
 
+  @Post('regenerate-verification-token')
+  @ApiOperation({
+    summary:
+      "Regenerates verification token incase the use wasn't verified during registration",
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Verification token regenerated successfully. Check console!',
+  })
+  async regenerateVerificationToken(
+    @Body() regenerateVerificationTokenDto: RegenerateVerificationTokenDto,
+  ) {
+    await this.authService.regenerateVerificationToken(
+      regenerateVerificationTokenDto.email,
+    );
+
+    return 'Verification token regenerated successfully.Check console!';
+  }
   @Post('logout')
   @UseGuards(CookieAuthGuard)
   @ApiBearerAuth()

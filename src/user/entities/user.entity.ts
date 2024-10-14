@@ -30,7 +30,7 @@ export class User {
   user_status: UserStatus;
 
   @Column({ nullable: true })
-  token: string;
+  verification_token: string;
 
   @Column({ unique: true, nullable: true })
   refresh_token: string;
