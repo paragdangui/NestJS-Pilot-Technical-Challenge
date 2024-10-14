@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
+import { UserStatus } from 'src/user/enum/user-status.enum';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,12 @@ export class AuthService {
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (user.user_status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException(
+        'User not verified, please verify the account first and login',
+      );
     }
 
     // Generate access and refresh tokens

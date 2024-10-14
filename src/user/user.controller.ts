@@ -25,7 +25,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'User Login' })
+  @ApiOperation({ summary: 'User Registration' })
   @ApiResponse({
     status: 201,
     description: "New user created for [newUser's email], please login!",
