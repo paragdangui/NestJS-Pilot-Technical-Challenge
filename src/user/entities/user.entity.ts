@@ -26,7 +26,7 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ type: 'boolean', default: UserStatus.INACTIVE })
+  @Column({ type: 'tinyint', default: UserStatus.INACTIVE })
   user_status: UserStatus;
 
   @Column({ nullable: true })
