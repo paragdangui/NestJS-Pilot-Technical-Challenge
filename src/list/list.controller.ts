@@ -59,7 +59,7 @@ export class ListController {
     return this.listService.update(+id, updateListDto);
   }
 
-  @ApiOperation({ summary: 'Delete the list of the specified ID' })
+  @ApiOperation({ summary: 'Delete the entire list of the specified ID' })
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.listService.remove(+id);

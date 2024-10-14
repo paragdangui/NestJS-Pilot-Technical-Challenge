@@ -55,6 +55,7 @@ export class ListService {
     return await this.listRepository.save(existingList);
   }
 
+  //TODO: ERROR: this function throws a 500 error
   async remove(id: number) {
     const existingList = await this.findOne(id);
     if (!existingList) {
