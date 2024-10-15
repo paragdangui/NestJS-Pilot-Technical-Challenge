@@ -1,12 +1,14 @@
 # Extra features:
 
-## add the ability to add multiple list items with a single with a single request.
+## Add the ability to add multiple list items with a single with a single request.
 
-## add migrations.
+## Add migrations.
 
 ## use some form of a SMTP server to validate emails.
 
-## rate limitations and lockout mechanism:
+## Rate limitations and lockout mechanism:
+
+Adding maximum number of login attempts and then locking the user out for a said amount of time as a cooldown due to unsuccessful login attempts.
 
 ## Password Expiration and Rotation:
 
