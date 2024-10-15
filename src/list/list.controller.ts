@@ -61,7 +61,7 @@ export class ListController {
 
   @ApiOperation({ summary: 'Delete the entire list of the specified ID' })
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.listService.remove(+id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    return `List: '${await this.listService.remove(+id)}' has been deleted`;
   }
 }

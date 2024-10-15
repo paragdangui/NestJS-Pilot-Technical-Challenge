@@ -29,6 +29,9 @@ export class List {
   @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
 
-  @OneToMany(() => ListItem, (listItem) => listItem.list, { cascade: true })
-  items: ListItem[];
+  @OneToMany(() => ListItem, (listItem) => listItem.list, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  listItem: ListItem[];
 }

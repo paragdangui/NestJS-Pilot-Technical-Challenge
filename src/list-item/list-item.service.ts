@@ -21,7 +21,7 @@ export class ListItemService {
       relations: ['items'],
     });
     if (!list) throw new NotFoundException('List not found');
-    return list.items;
+    return list.listItem;
   }
 
   // Find one item in a list
@@ -31,7 +31,7 @@ export class ListItemService {
       relations: ['items'],
     });
     if (!list) throw new NotFoundException('List not found');
-    const item = list.items.find((item) => item.id === itemId);
+    const item = list.listItem.find((item) => item.id === itemId);
     if (!item) throw new NotFoundException('Item not found in the list');
     return item;
   }

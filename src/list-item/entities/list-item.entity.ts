@@ -9,6 +9,8 @@ export class ListItem {
   @Column()
   description: string;
 
-  @ManyToOne(() => List, (list) => list.items)
+  @ManyToOne(() => List, (list) => list.listItem, {
+    onDelete: 'CASCADE',
+  })
   list: List;
 }
