@@ -4,7 +4,7 @@
 
 This feature allows users to batch-create multiple list items in one API call, improving efficiency and reducing server requests. It could involve accepting an array of items in the request body, validating each item, and creating them in bulk. This enhances the user experience for scenarios where users need to quickly populate a list.
 
-## Add migrations:
+## Add migrations: (Added To This Project)
 
 Migrations are essential for evolving the database schema in a controlled manner. With migrations, developers can apply version-controlled changes to the database, like adding new tables, altering columns, or inserting initial data, ensuring consistency across different environments. Tools like TypeORM or Sequelize migrations can be used to implement this feature.
 

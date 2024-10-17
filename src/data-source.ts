@@ -19,11 +19,6 @@ export const AppDataSource = new DataSource({
 AppDataSource.initialize()
   .then(() => {
     console.log('Data Source has been initialized!');
-    console.log(process.env.DB_HOST, 'process.env.DB_HOST');
-    console.log(process.env.DB_PORT, 'process.env.DB_PORT');
-    console.log(process.env.DB_USERNAME, 'process.env.DB_PORT');
-    console.log(process.env.DB_PASSWORD, 'process.env.DB_PORT');
-    console.log(process.env.DB_DATABASE, 'process.env.DB_PORT');
   })
   .catch((err) => {
     console.error('Error during Data Source initialization', err);

@@ -7,7 +7,7 @@ import {
   Delete,
   Patch,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ListItemService } from './list-item.service';
 import { CreateListItemDto } from './dto/create-list-item.dto';
 import { UpdateListItemDto } from './dto/update-list-item.dto';
@@ -31,17 +31,33 @@ export class ListItemController {
     return this.listItemService.findOne(+listId, +itemId);
   }
 
-  @ApiOperation({ summary: 'Add a New Item to your List' })
+  @ApiOperation({
+    summary: 'Add a single new item or list of items to your list',
+  })
   @ApiResponse({
     status: 201,
     description: 'Creates and returns the new list item.',
   })
+  @ApiBody({
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          description: {
+            type: 'string',
+            example: 'string',
+          },
+        },
+      },
+    },
+  })
   @Post()
   create(
     @Param('listId') listId: string,
-    @Body() createListItemDto: CreateListItemDto,
+    @Body() createListItemDtos: CreateListItemDto[],
   ) {
-    return this.listItemService.create(+listId, createListItemDto);
+    return this.listItemService.createMultiple(+listId, createListItemDtos);
   }
 
   @ApiOperation({ summary: 'Update a list item' })

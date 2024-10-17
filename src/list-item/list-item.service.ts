@@ -18,7 +18,7 @@ export class ListItemService {
   async findAll(listId: number) {
     const list = await this.listRepository.findOne({
       where: { id: listId },
-      relations: ['items'],
+      relations: ['listItem'],
     });
     if (!list) throw new NotFoundException('List not found');
     return list.listItem;
@@ -45,6 +45,23 @@ export class ListItemService {
       list,
     });
     return this.listItemRepository.save(newItem);
+  }
+
+  async createMultiple(
+    listId: number,
+    createListItemDtos: CreateListItemDto[],
+  ) {
+    const list = await this.listRepository.findOne({ where: { id: listId } });
+    if (!list) throw new NotFoundException('List not found');
+
+    const newItems = createListItemDtos.map((dto) => {
+      return this.listItemRepository.create({
+        description: dto.description,
+        list,
+      });
+    });
+
+    return this.listItemRepository.save(newItems);
   }
 
   // Update an item in a list
