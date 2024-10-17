@@ -39,4 +39,15 @@ $ npm run start:dev
 
 # production mode
 $ npm run start:prod
+
+#Steps to run migrations:
+
+## Step 1:
+- Run 'npm run build' to build the project will all the new changes.
+
+## Step 2:
+- Run 'npm run migration:generate' this command will create a empty migration file and will also automatically detect the changes and will add the db queries in it directly.
+
+## Step 3:
+- Now you can run the migrations that was generated in the previous step with the command 'npm run migration:run'.
 ```
