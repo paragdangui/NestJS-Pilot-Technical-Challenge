@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   Res,
@@ -16,6 +17,9 @@ import { UserStatus } from 'src/user/enum/user-status.enum';
 
 @Injectable()
 export class AuthService {
+  private readonly MAX_FAILED_ATTEMPTS = 5; //number of failed attempts before locking the account
+  private readonly LOCK_TIME = 60 * 5; // 5 minutes in seconds
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -25,17 +29,35 @@ export class AuthService {
   async login(loginDto: LoginDto, @Res() res) {
     const { email, password } = loginDto;
 
-    // Validate user and password
+    // Fetch user by email
     const user = await this.userRepository.findOne({ where: { email } });
+
+    // Check if user is locked due to too many failed attempts
+    if (user.lockUntil && user.lockUntil.getTime() > new Date().getTime()) {
+      const timeLeft = (user.lockUntil.getTime() - new Date().getTime()) / 1000;
+
+      throw new BadRequestException(
+        `Account is locked. Try again in ${Math.ceil(timeLeft)} seconds`,
+      );
+    }
+
+    // If user doesn't exist or wrong password
     if (!user || !(await bcrypt.compare(password, user.password))) {
+      if (user) await this.handleFailedAttempt(user); // Increment failed attempts if the user exists
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Check if the user is verified
     if (user.user_status !== UserStatus.ACTIVE) {
       throw new UnauthorizedException(
         'User not verified, please verify the account first and login',
       );
     }
+
+    // Reset failed attempts and lock status on successful login
+    user.failedAttempts = 0;
+    user.lockUntil = null;
+    await this.userRepository.save(user);
 
     // Generate access and refresh tokens
     const accessToken = this.jwtService.sign(
@@ -57,7 +79,7 @@ export class AuthService {
     // Set the refresh token as an HTTP-only cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Enable in production for HTTPS
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
@@ -67,6 +89,18 @@ export class AuthService {
       accessToken,
       message: 'Login successful',
     });
+  }
+
+  // Handle failed login attempts and lock the account if needed
+  private async handleFailedAttempt(user: User) {
+    user.failedAttempts = (user.failedAttempts || 0) + 1;
+
+    // Lock the account if failed attempts exceed the maximum
+    if (user.failedAttempts >= this.MAX_FAILED_ATTEMPTS) {
+      user.lockUntil = new Date(Date.now() + this.LOCK_TIME * 1000); // Lock the account for LOCK_TIME seconds
+    }
+
+    await this.userRepository.save(user); // Save the updated user data
   }
 
   async regenerateVerificationToken(email: string): Promise<User> {

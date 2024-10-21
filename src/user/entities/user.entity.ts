@@ -26,6 +26,12 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ default: 0 })
+  failedAttempts: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lockUntil: Date;
+
   @Column({ type: 'tinyint', default: UserStatus.INACTIVE })
   user_status: UserStatus;
 
