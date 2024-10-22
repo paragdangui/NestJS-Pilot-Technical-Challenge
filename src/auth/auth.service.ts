@@ -48,17 +48,17 @@ export class AuthService {
       );
     }
 
-    // TODO: complete this later
-    // const passwordAge =
-    //   (new Date().getTime() - new Date(user.passwordLastChangedAt).getTime()) /
-    //   (1000 * 60 * 60 * 24); // Age in days
-    // if (passwordAge > this.PASSWORD_EXPIRATION_DAYS) {
-    //   user.passwordExpired = true;
-    //   await this.userRepository.save(user);
-    //   throw new UnauthorizedException(
-    //     'Password has expired. Please reset your password.',
-    //   );
-    // }
+    const passwordAge =
+      (new Date().getTime() - new Date(user.passwordLastChangedAt).getTime()) /
+      (1000 * 60 * 60 * 24); // Age in days
+
+    if (passwordAge > this.PASSWORD_EXPIRATION_DAYS) {
+      user.passwordExpired = true;
+      await this.userRepository.save(user);
+      throw new UnauthorizedException(
+        'Password has expired. Please update your password.',
+      );
+    }
 
     // If user doesn't exist or wrong password
     if (!user || !(await bcrypt.compare(password, user.password))) {
