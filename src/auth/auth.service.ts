@@ -19,6 +19,7 @@ import { UserStatus } from 'src/user/enum/user-status.enum';
 export class AuthService {
   private readonly MAX_FAILED_ATTEMPTS = 5; //number of failed attempts before locking the account
   private readonly LOCK_TIME = 60 * 5; // 5 minutes in seconds
+  // private readonly PASSWORD_EXPIRATION_DAYS = 90; // Password expires after 90 days
 
   constructor(
     @InjectRepository(User)
@@ -40,6 +41,18 @@ export class AuthService {
         `Account is locked. Try again in ${Math.ceil(timeLeft)} seconds`,
       );
     }
+
+    // TODO: complete this later
+    // const passwordAge =
+    //   (new Date().getTime() - new Date(user.passwordLastChangedAt).getTime()) /
+    //   (1000 * 60 * 60 * 24); // Age in days
+    // if (passwordAge > this.PASSWORD_EXPIRATION_DAYS) {
+    //   user.passwordExpired = true;
+    //   await this.userRepository.save(user);
+    //   throw new UnauthorizedException(
+    //     'Password has expired. Please reset your password.',
+    //   );
+    // }
 
     // If user doesn't exist or wrong password
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -89,6 +102,18 @@ export class AuthService {
       accessToken,
       message: 'Login successful',
     });
+  }
+
+  async updatePassword(userId: number, newPassword: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    // Hash the new password and update it
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.passwordLastChangedAt = new Date();
+    user.passwordExpired = false;
+
+    return this.userRepository.save(user);
   }
 
   // Handle failed login attempts and lock the account if needed

@@ -6,6 +6,7 @@ import {
   Res,
   UnauthorizedException,
   UseGuards,
+  Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
@@ -18,6 +19,9 @@ import {
 } from '@nestjs/swagger';
 import { CookieAuthGuard } from './guards/cookie.guard';
 import { RegenerateVerificationTokenDto } from './dto/regenerateVerificationToken.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { Token } from './decorator/auth.decorator';
+import { JwtAuthGuard } from './guards/jwt.guard';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -36,6 +40,21 @@ export class AuthController {
   })
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
     return this.authService.login(loginDto, res);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('update-password')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update your existing password' })
+  async updatePassword(
+    @Body() updatePassDto: UpdatePasswordDto,
+    @Token() token,
+  ) {
+    const { newPassword } = updatePassDto;
+    console.log(updatePassDto, 'updatePassDto');
+    console.log(token.sub, 'token.sub');
+
+    return this.authService.updatePassword(token.sub, newPassword);
   }
 
   @Post('refresh-token')
