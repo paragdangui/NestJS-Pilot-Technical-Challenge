@@ -13,6 +13,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -43,6 +44,21 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Update user's first name or last name" })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        first_name: {
+          type: 'string',
+          example: 'Jon',
+        },
+        last_name: {
+          type: 'string',
+          example: 'Doe',
+        },
+      },
+    },
+  })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(+id, updateUserDto);
   }
