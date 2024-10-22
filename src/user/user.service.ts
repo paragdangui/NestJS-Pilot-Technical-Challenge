@@ -62,12 +62,14 @@ export class UserService {
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = this.userRepository.create({
+    const newUser = this.userRepository.create({
       ...createUserDto,
       verification_token: verificationToken,
       password: hashedPassword,
+      passwordLastChangedAt: new Date(),
+      passwordHistory: [hashedPassword], // Initialize password history with the first password
     });
-    return this.userRepository.save(user);
+    return this.userRepository.save(newUser);
   }
 
   // Function to confirm the email by updating user_status

@@ -44,6 +44,15 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   refresh_token_expiry: Date;
 
+  @Column('simple-array', { nullable: true }) // Stored hashed passwords in a comma-separated array
+  passwordHistory: string[];
+
+  @Column({ type: 'timestamp', nullable: true })
+  passwordLastChangedAt: Date;
+
+  @Column({ default: false })
+  passwordExpired: boolean;
+
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
 

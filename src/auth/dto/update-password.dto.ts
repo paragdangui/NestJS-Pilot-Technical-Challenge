@@ -4,7 +4,7 @@ import { IsString, Matches, MinLength } from 'class-validator';
 export class UpdatePasswordDto {
   @ApiProperty({
     description: 'Enter a strong new password',
-    example: 'Abcde123$',
+    example: 'abcde123$',
   })
   @IsString()
   @MinLength(8, { message: 'Password must be at least 8 characters long' }) // Point 1: Enforce minimum length

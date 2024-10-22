@@ -19,7 +19,8 @@ import { UserStatus } from 'src/user/enum/user-status.enum';
 export class AuthService {
   private readonly MAX_FAILED_ATTEMPTS = 5; //number of failed attempts before locking the account
   private readonly LOCK_TIME = 60 * 5; // 5 minutes in seconds
-  // private readonly PASSWORD_EXPIRATION_DAYS = 90; // Password expires after 90 days
+  private readonly PASSWORD_EXPIRATION_DAYS = 90; // Password expires after 90 days
+  private readonly PASSWORD_HISTORY_LIMIT = 5;
 
   constructor(
     @InjectRepository(User)
@@ -32,6 +33,11 @@ export class AuthService {
 
     // Fetch user by email
     const user = await this.userRepository.findOne({ where: { email } });
+
+    // Ensure user exists before checking properties
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
     // Check if user is locked due to too many failed attempts
     if (user.lockUntil && user.lockUntil.getTime() > new Date().getTime()) {
@@ -107,11 +113,36 @@ export class AuthService {
   async updatePassword(userId: number, newPassword: string) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
+    // Check if the new password matches any of the previous ones
+    if (user.passwordHistory) {
+      for (const oldPasswordHash of user.passwordHistory) {
+        const isPasswordUsed = await bcrypt.compare(
+          newPassword,
+          oldPasswordHash,
+        );
+        if (isPasswordUsed) {
+          throw new BadRequestException(
+            'You cannot reuse a previously used password.',
+          );
+        }
+      }
+    }
+
     // Hash the new password and update it
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     user.passwordLastChangedAt = new Date();
     user.passwordExpired = false;
+
+    if (!user.passwordHistory) {
+      user.passwordHistory = [];
+    }
+    user.passwordHistory.push(hashedPassword);
+
+    // Limit the password history to the last X passwords (e.g., 5)
+    if (user.passwordHistory.length > this.PASSWORD_HISTORY_LIMIT) {
+      user.passwordHistory.shift(); // Remove the oldest password hash
+    }
 
     return this.userRepository.save(user);
   }

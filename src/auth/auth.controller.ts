@@ -47,12 +47,10 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update your existing password' })
   async updatePassword(
-    @Body() updatePassDto: UpdatePasswordDto,
+    @Body() updatePasswordDto: UpdatePasswordDto,
     @Token() token,
   ) {
-    const { newPassword } = updatePassDto;
-    console.log(updatePassDto, 'updatePassDto');
-    console.log(token.sub, 'token.sub');
+    const { newPassword } = updatePasswordDto;
 
     return this.authService.updatePassword(token.sub, newPassword);
   }
